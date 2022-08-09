@@ -132,3 +132,7 @@ Decrypted message: Great job! You get a special prize, the flag: USCG{pr3tty_n3a
 ```
 
 **Flag:** `USCG{pr3tty_n3at0_huh}`
+
+
+### Final Note
+I'm pretty sure this was NOT the intended solution since my solve didn't even use the VAPID public key at all... VAPID keys are used to ensure the site that you subscribe to is the same site sending the notifications (so one site can't subscribe you to notifications from another site), and this check is done by the browser. But either way, it worked!
