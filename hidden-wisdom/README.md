@@ -23,7 +23,7 @@ probably contain game data.
 
 <img src="triage.png">
 
-Since a game name wasn't provided, we can assum the solution does not lie in
+Since a game name wasn't provided, we can assume the solution does not lie in
 reversing/decoding the data in the TCP packets. So, the flag must be in another
 field. Turns out, the flag can be found by looking at the packet time stamps.
 
@@ -43,8 +43,8 @@ obvious consistency in the time stamp intervals of these packets.
 </p>
 
 Further examination reveals that all of these time stamp intervals fall into one of
-three values: 1) `~0.000003` second (green box), 2) `~0.1` second (red box),
-3) `~0.3` second (blue box).
+three values: 1) `~0.000003` seconds (green box), 2) `~0.1` seconds (red box),
+3) `~0.3` seconds (blue box).
 
 ### Inferring the Meanings of the Time Stamp Intervals
 
