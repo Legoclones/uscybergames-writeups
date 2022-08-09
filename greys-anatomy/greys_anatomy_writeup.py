@@ -10,6 +10,8 @@ Can you compromise the medical records of Seattle Grace Hospital? We've obtained
 """
 
 from typing import List, Dict, Union, Optional, Any
+import math as m
+
 
 def num_to_gray(num: int) -> str:
 	"""
@@ -46,13 +48,41 @@ def gen_gray_codes(n: int) -> List[str]:
 	return concat
 '''
 
-def gen_gray_codes(n: int) -> List[str]:
+def gen_gray_codes(
+	n: int,
+	maximum: int = None
+) -> List[str]:
 	"""
-	Generate a list of numbers up to n bits encoded in reflected binary gray code
+	Generate a list of numbers up to n bits encoded in Reflected Binary Gray Code (RGBC)
 	"""
 	gray_nums = []
-	# left-shifting 1 by n gives us the maximum int number representable with n bits
-	for i in range(1<<n):
-		# this f-string specifies to give the RBGC-encoded i-th number encoded in binary and padded with zeroes to fill width n
-		gray_nums.append(f"{num_to_gray(i):0{n}b}")
+	if maximum is not None:
+		for i in range(maximum):
+			gray_nums.append(f"{num_to_gray(i):0{n}b}")
+	else:
+		# left-shifting 1 by n gives us the maximum int number representable with n bits
+		for i in range(1<<n):
+			# this f-string specifies to give the RBGC-encoded i-th number repr in binary and padded with zeroes to fill width n
+			gray_nums.append(f"{num_to_gray(i):0{n}b}")
 	return gray_nums
+
+
+def gen_n_digit_gray_seq(
+	n: int,
+	pad: bool = True
+) -> List[str]:
+	"""
+	Generate a d-digit sequence of Reflected Binary Gray Code (RGBC)-encoded numbers
+	"""
+	# get the number of bits required to represent an n-digit decimal number
+	maxim = (10**n) - 1
+	num_bits = m.ceil(m.log2(maxim))
+	
+	if pad:		
+		# convert to decimal integers from the num_bits-bit RGBC sequence
+		dec_gray_seq = [f"{int(i, 2):0>3d}" for i in gen_gray_codes(num_bits, maxim)]
+	else:
+		dec_gray_seq = [f"{int(i, 2)}" for i in gen_gray_codes(num_bits, maxim)]
+	
+	# we only want n-digits, so slice up to the maximum number with n-digits
+	return dec_gray_seq[:maxim]
