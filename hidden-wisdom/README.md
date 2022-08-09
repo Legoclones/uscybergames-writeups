@@ -10,9 +10,9 @@ I got banned from my favorite video game for hacking, but a friend found a way t
 a message through the game anyway. Can you help me find his hidden wisdom?
 
 Author: Battelle
-
-[hidden_wisdom.pcap](./hidden_wisdom.pcap)
 ```
+
+Attachments: [hidden_wisdom.pcap](./hidden_wisdom.pcap)
 
 ## Writeup
 ### Initial Triage
@@ -37,8 +37,10 @@ the box.
 The other picture below shows *this* challenge's time stamps; there is an
 obvious consistency in the time stamp intervals of these packets.
 
-<img src="normal_time_stamps.png">
-<img src="weird_time_stamps.png">
+<p float="left" align="middle">
+  <img src="normal_time_stamps.png" />
+  <img src="weird_time_stamps.png" /> 
+</p>
 
 Further examination reveals that all of these time stamp intervals fall into one of
 three values: 1) `~0.000003` second (green box), 2) `~0.1` second (red box),
