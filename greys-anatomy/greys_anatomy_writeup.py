@@ -1,7 +1,9 @@
 """
 Season II US Cyber Open CTF
 Greys Anatomy (Crypto) challenge - by BenderBot
-Writeup/Solution by LenceOfTheOrder
+Writeup/Solution by LenceOfTheOrder with certain (labeled) parts taken from
+https://github.com/tj-oconnor/cyber-open-2022/blob/main/crypto/greys/solver.py
+https://ctftime.org/writeup/34632 by v10l3nt (https://www.tjoconnor.org/)
 
 Problem:
 Can you compromise the medical records of Seattle Grace Hospital? We've obtained a set of credentials (mgrey/1515) but haven't figured out how to bypass the second factor authentication.
@@ -32,6 +34,50 @@ Hamming distance is an important concept in coding theory, as it is used in the 
 
 from typing import List, Dict, Union, Optional, Any
 import math as m
+
+## Begin parts taken from TJ OConnor's writeup (see this module's docstring)
+from pwn import *
+
+if args.REMOTE:
+    p = remote('0.cloud.chals.io', 11444)
+else:
+    p = process('./chal.py', stdin=PTY)
+
+def login():
+    user = b'mgrey'
+    passwd = b'1515'
+    p.recvuntil(b'Username:')
+    p.sendline(user)
+    p.recvuntil(b'Password:')
+    p.sendline(passwd)
+    info('Sent username and password')
+
+
+def send_code(code):
+    p.recvuntil(b'Enter Code')
+    c = str(code).zfill(3).encode()
+    p.sendline(c)
+    p.recvline()
+    r = p.recvline()
+    if b"Correct" in r:
+        info(f"CORRECT CODE FOUND: {c}")
+        return True
+    else:
+        return False
+
+
+def main():
+    gray_codes = gen_codes()
+    login()
+    codes_cracked = 0
+    while codes_cracked < 15:
+        for i in gray_codes:
+            if send_code(i):
+                codes_cracked += 1
+                break
+    p.interactive()
+
+## End parts taken from TJ OConnor' writeup
 
 
 def num_to_gray(num: int) -> str:
