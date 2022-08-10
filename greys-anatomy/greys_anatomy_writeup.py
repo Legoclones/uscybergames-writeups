@@ -32,23 +32,32 @@ Hamming distance is an important concept in coding theory, as it is used in the 
 0.cloud.chals.io:11444
 """
 
-from typing import List, Dict, Union, Optional, Any
+from typing import List, Dict, Union, Optional, Any, AnyStr
 import math as m
+import pwn
 
-## Begin parts taken from TJ OConnor's writeup (see this module's docstring)
+## Begin parts taken/adapted from TJ OConnor's writeup (see this module's docstring); Annotations, comments, and docstrings by LenceOfTheOrder
 from pwn import *
 
 if args.REMOTE:
-    p = remote('0.cloud.chals.io', 11444)
+    p = remote('0.cloud.chals.io', 11444) # pwn.remote == pwnlib.tubes.remote.remote; subcls of tubes.tube
 else:
-    p = process('./chal.py', stdin=PTY)
+    p = process('./chal.py', stdin=PTY) # pwn.process == pwnlib.tubes.process.process; subcls of tubes.tube
 
-def login():
-    user = b'mgrey'
-    passwd = b'1515'
-    p.recvuntil(b'Username:')
+def login(
+	user: AnyStr = b'mgrey',
+	passwd: AnyStr = b'1515',
+	user_prompt: AnyStr = b'Username:',
+	pswd_promt: AnyStr = b'Password:',
+	proc: tube = p
+):
+	"""
+	Heavily adapted (made this function reusable for other challenges); see above
+	Authenticate to the given process with the given credentials upon encountering a username and password prompt
+	"""
+    p.recvuntil(user_prompt)
     p.sendline(user)
-    p.recvuntil(b'Password:')
+    p.recvuntil(pswd_promt)
     p.sendline(passwd)
     info('Sent username and password')
 
@@ -103,17 +112,6 @@ def get_n_bit_bitstrings(
 		bstrs = ['{0:>0{width}}'.format(i, width=n) for i in bstrs]
 	
 	return bstrs
-
-'''Doesn't work... yet
-def gen_gray_codes(n: int) -> List[str]:
-	bitstrs = get_n_bit_bitstrings(n)
-	
-	reflected = reversed(bitstrs)
-	prefixed_old = [f'0{i}' for i in bitstrs]
-	prefixed_new = [f'1{i}' for i in reflected]
-	concat = prefixed_old + prefixed_new
-	return concat
-'''
 
 def gen_gray_codes(
 	n: int,
