@@ -35,7 +35,7 @@ random, and many packets can be sent in under one-tenth of a second, as shown in
 the box.
 
 The other picture below shows *this* challenge's time stamps; there is an
-obvious consistency in the time stamp intervals of these packets.
+unusual consistency in the time stamp intervals of these packets.
 
 <p float="left" align="middle">
   <img src="normal_time_stamps.png" />
