@@ -55,14 +55,17 @@ def login(
 	Heavily adapted (made this function reusable for other challenges); see above
 	Authenticate to the given process with the given credentials upon encountering a username and password prompt
 	"""
-    p.recvuntil(user_prompt)
-    p.sendline(user)
-    p.recvuntil(pswd_promt)
-    p.sendline(passwd)
+    proc.recvuntil(user_prompt)
+    proc.sendline(user)
+    proc.recvuntil(pswd_promt)
+    proc.sendline(passwd)
     info('Sent username and password')
 
 
 def send_code(code):
+	"""
+	
+	"""
     p.recvuntil(b'Enter Code')
     c = str(code).zfill(3).encode()
     p.sendline(c)
@@ -91,10 +94,11 @@ def main():
 
 def num_to_gray(num: int) -> str:
 	"""
-	Returns the binary reflected gray code representation of the given integer number
+	Returns the Binary Reflected Gray Code (BRGC) representation of the given integer number
 	Adapted from the C function, "BinaryToGray" on the page with permalink https://en.wikipedia.org/w/index.php?title=Gray_code&oldid=1100063670#Converting_to_and_from_Gray_code
 	"""
 	return num ^ (num >> 1)
+
 
 def get_n_bit_bitstrings(
 	n: int,
@@ -105,6 +109,7 @@ def get_n_bit_bitstrings(
 	Returns a list of all the integers that can be represented in binary with n bits
 	:param n: the number of bits to use
 	:param remove_prefix: If True (default), removes the '0b' prefix that the bin() function prepends to the returned string when converting a decimal int to binary
+	:param pad_length: If True (default), prepends each bitstring with zeroes to fill a width of n
 	"""
 	bstrs = [f"{i:b}" for i in range(1<<n)] 
 	
@@ -137,7 +142,7 @@ def gen_n_digit_gray_seq(
 	pad: bool = True
 ) -> List[str]:
 	"""
-	Generate a d-digit sequence of Reflected Binary Gray Code (RGBC)-encoded numbers
+	Generate the sequence of all n-digit Reflected Binary Gray Code (RGBC)-encoded numbers
 	"""
 	# get the number of bits required to represent an n-digit decimal number
 	maxim = (10**n) - 1
