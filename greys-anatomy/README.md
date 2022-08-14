@@ -43,7 +43,7 @@ One (heuristic) way to determine if a submission is an attempt to correct a typo
 
 Hamming distance is an important concept in coding theory, as it is used in the creation and analysis of error detection and error correction algorithms. To apply this knowledge to abuse the trust that Seattle Grace has given us, we can use another topic from coding theory: Gray Codes. The (Reflected Binary) Gray Code is a sequence of binary strings (or "code words") where each bitstring has a Hamming distance of 1 from the elements immediately preceeding and succeeding it in the sequence. Gray codes are also frequently used in error prevention.
 
-By using the Gray Code sequence, our "trust meter" only goes down by one since the Hamming distance between two successive submissions is always exactly one. This lets use brute force each of the 15 3-digit codes to get the flag:
+By using the Gray Code sequence, our "trust meter" only goes down by one with each incorrect gues since the Hamming distance between two successive submissions is always exactly one. This lets use brute force each of the 15 3-digit codes to get the flag:
 
 <p float="left" align="middle">
   <img src="greys_anatomy_solve.png" />
