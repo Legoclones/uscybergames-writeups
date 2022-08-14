@@ -1,9 +1,11 @@
 """
 Season II US Cyber Open CTF
 Greys Anatomy (Crypto) challenge - by BenderBot
-Writeup/Solution by LenceOfTheOrder with certain (labeled) parts taken from
+Solution script mostly by TJ OConnor;
 https://github.com/tj-oconnor/cyber-open-2022/blob/main/crypto/greys/solver.py
 https://ctftime.org/writeup/34632 by v10l3nt (https://www.tjoconnor.org/)
+Writeup and annotations written by Nick Stegman (@LenceOfTheOrder), 
+Writeup reviewed by Justin Applegate (@Legoclones), Chance Harrison (@ChanceHarrison), and John Nguyen (@Magicks52)
 
 Problem:
 Can you compromise the medical records of Seattle Grace Hospital? We've obtained a set of credentials (mgrey/1515) but haven't figured out how to bypass the second factor authentication.
@@ -36,13 +38,23 @@ from typing import List, Dict, Union, Optional, Any, AnyStr
 import math as m
 import pwn
 
-## Begin parts taken/adapted from TJ OConnor's writeup (see this module's docstring); Annotations, comments, and docstrings by LenceOfTheOrder
 from pwn import *
 
 if args.REMOTE:
-    p = remote('0.cloud.chals.io', 11444) # pwn.remote == pwnlib.tubes.remote.remote; subcls of tubes.tube
+	p = remote('0.cloud.chals.io', 11444) # pwn.remote == pwnlib.tubes.remote.remote; subcls of tubes.tube
 else:
-    p = process('./chal.py', stdin=PTY) # pwn.process == pwnlib.tubes.process.process; subcls of tubes.tube
+	p = process('./chal.py', stdin=PTY) # pwn.process == pwnlib.tubes.process.process; subcls of tubes.tube
+
+def gen_codes() -> List[int]:
+	# to represent 999 (the highest possible code for this chall) in binary, we need 10 bits
+    n = 10
+    gray_codes = []
+    for i in range(0, 1 << n):
+        gray = i ^ (i >> 1)
+        if gray < 1000:
+            gray_codes.append(gray)
+    info("Generated Gray Codes")
+    return gray_codes
 
 def login(
 	user: AnyStr = b'mgrey',
@@ -55,104 +67,45 @@ def login(
 	Heavily adapted (made this function reusable for other challenges); see above
 	Authenticate to the given process with the given credentials upon encountering a username and password prompt
 	"""
-    proc.recvuntil(user_prompt)
-    proc.sendline(user)
-    proc.recvuntil(pswd_promt)
-    proc.sendline(passwd)
-    info('Sent username and password')
+	proc.recvuntil(user_prompt)
+	proc.sendline(user)
+	proc.recvuntil(pswd_promt)
+	proc.sendline(passwd)
+	info('Sent username and password')
 
 
-def send_code(code):
+def send_code(
+	code: AnyStr,
+	proc: tube = p
+) -> bool:
 	"""
-	
+	Send the given code str to the given process
 	"""
-    p.recvuntil(b'Enter Code')
-    c = str(code).zfill(3).encode()
-    p.sendline(c)
-    p.recvline()
-    r = p.recvline()
-    if b"Correct" in r:
-        info(f"CORRECT CODE FOUND: {c}")
-        return True
-    else:
-        return False
+	proc.recvuntil(b'Enter Code')
+	c = str(code).zfill(3).encode()
+	# send the code to the process
+	proc.sendline(c)
+	proc.recvline()
+	r = proc.recvline()
+	if b"Correct" in r:
+		info(f"CORRECT CODE FOUND: {c}")
+		return True
+	else:
+		return False
 
 
 def main():
-    gray_codes = gen_codes()
-    login()
-    codes_cracked = 0
-    while codes_cracked < 15:
-        for i in gray_codes:
-            if send_code(i):
-                codes_cracked += 1
-                break
-    p.interactive()
+	gray_codes = gen_codes()
+	login()
+	codes_cracked = 0
+	while codes_cracked < 15:
+		for i in gray_codes:
+			if send_code(i):
+				codes_cracked += 1
+				# get us out of the inner (brute forcing) loop
+				break
+	p.interactive()
 
-## End parts taken from TJ OConnor' writeup
-
-
-def num_to_gray(num: int) -> str:
-	"""
-	Returns the Binary Reflected Gray Code (BRGC) representation of the given integer number
-	Adapted from the C function, "BinaryToGray" on the page with permalink https://en.wikipedia.org/w/index.php?title=Gray_code&oldid=1100063670#Converting_to_and_from_Gray_code
-	"""
-	return num ^ (num >> 1)
-
-
-def get_n_bit_bitstrings(
-	n: int,
-	remove_prefix: bool = True,
-	pad_length: bool = True
-) -> List[str]:
-	"""
-	Returns a list of all the integers that can be represented in binary with n bits
-	:param n: the number of bits to use
-	:param remove_prefix: If True (default), removes the '0b' prefix that the bin() function prepends to the returned string when converting a decimal int to binary
-	:param pad_length: If True (default), prepends each bitstring with zeroes to fill a width of n
-	"""
-	bstrs = [f"{i:b}" for i in range(1<<n)] 
-	
-	if pad_length:
-		bstrs = ['{0:>0{width}}'.format(i, width=n) for i in bstrs]
-	
-	return bstrs
-
-def gen_gray_codes(
-	n: int,
-	maximum: int = None
-) -> List[str]:
-	"""
-	Generate a list of numbers up to n bits encoded in Reflected Binary Gray Code (RGBC)
-	"""
-	gray_nums = []
-	if maximum is not None:
-		for i in range(maximum):
-			gray_nums.append(f"{num_to_gray(i):0{n}b}")
-	else:
-		# left-shifting 1 by n gives us the maximum int number representable with n bits
-		for i in range(1<<n):
-			# this f-string specifies to give the RBGC-encoded i-th number repr in binary and padded with zeroes to fill width n
-			gray_nums.append(f"{num_to_gray(i):0{n}b}")
-	return gray_nums
-
-
-def gen_n_digit_gray_seq(
-	n: int,
-	pad: bool = True
-) -> List[str]:
-	"""
-	Generate the sequence of all n-digit Reflected Binary Gray Code (RGBC)-encoded numbers
-	"""
-	# get the number of bits required to represent an n-digit decimal number
-	maxim = (10**n) - 1
-	num_bits = m.ceil(m.log2(maxim))
-	
-	if pad:		
-		# convert to decimal integers from the num_bits-bit RGBC sequence
-		dec_gray_seq = [f"{int(i, 2):0>3d}" for i in gen_gray_codes(num_bits, maxim)]
-	else:
-		dec_gray_seq = [f"{int(i, 2)}" for i in gen_gray_codes(num_bits, maxim)]
-	
-	# we only want n-digits, so slice up to the maximum number with n-digits
-	return dec_gray_seq[:maxim]
+# call the function!
+if __name__ == '__main__':
+	main()
